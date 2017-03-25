@@ -1,3 +1,5 @@
+from solvers.solver import Solver
+
 class AStarSolver(Solver):
 
     def _yield_path(self, came_from, last):
@@ -13,7 +15,7 @@ class AStarSolver(Solver):
     def _reconstruct_path(self, came_from, last):
         return list(reversed([p for p in self._yield_path(came_from, last)]))
 
-    def astar(self, start, goal):
+    def solve(self, start, goal):
         """applies the a-star path searching algorithm in order to find a route between a 'start' node and a 'root' node"""
         closedset = set([])    # The set of nodes already evaluated.
         # The set of tentative nodes to be evaluated, initially containing the
