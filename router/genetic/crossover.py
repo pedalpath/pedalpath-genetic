@@ -23,11 +23,8 @@ def crossover(route_a,route_b):
         print('Routes do not end in the same place')
         return offspring
 
-    # ensure that there are similar nodes
-    intersection = intersection(route_a,route_b)
-
     # for all intersections
-    for node in intersection:
+    for node in intersection(route_a,route_b):
         self_index = route_a.index(node)
         other_index = route_b.index(node)
         add(route_a[:self_index] + route_b[other_index:])

@@ -1,7 +1,8 @@
+from tools.timer import Timer
 from tools.display_tools import display 
-from tools.prob_tools import select_weighted 
 from tools.process_tools import ProcessTools 
 from solvers.heading_solver import HeadingSolver
+from tools.prob_tools import select,select_weighted 
 
 from genetic.crossover import crossover
 from genetic.fitness import bearing_fitness,distance_fitness
@@ -41,9 +42,7 @@ class Genetic:
         # Find solution
         routes = []
         num_epoc = 100
-        num_routes = 10
-        num_mutations = 2
-        num_crossovers = 2
+        num_routes = 100
 
         # Find 20 random routes
         print('Finding inital random solutions')
@@ -68,6 +67,7 @@ class Genetic:
 
             # Select members of the population randomly to mutate
             mutations = []
+            timer = Timer('Creating mutations')
             for solution in self._select_solutions(solutions,10):
                 route = mutate_start(solution.route)
                 solution = Solution(route)
@@ -77,29 +77,37 @@ class Genetic:
                 solution = Solution(route)
                 solution.fitness = self._route_fitness(route)
                 mutations.append(solution)
+            timer.finish()
 
             # Select members of the population randomly to crossover
             offspring = []
-            for solution in self._select_solutions(solutions,10):
-                for route in crossover(solution.route):
+            timer = Timer('Creating offspring')
+            for i in range(10):
+                route_a = select(solutions).route
+                route_b = select(solutions).route
+                for route in crossover(route_a,route_b):
                     solution = Solution(route)
                     solution.fitness = self._route_fitness(route)
                     offspring.append(solution)
+            print(len(offspring))
+            timer.finish()
 
             # Select members of population to randomly kill
             fitness_probabilities = [ solution.fitness - solutions[0].fitness for solution in solutions ]
             removed_solution_indexs = select_weighted(fitness_probabilities,20)
 
             # Routes
+            timer = Timer('Updating routes')
             routes = [
-                solution
-                for index,solution in enumerate(
+                solution.route
+                for (index,solution) in enumerate(
                     solutions +
                     self._select_solutions(mutations,10) +
                     self._select_solutions(offspring,10)
                 )
                 if (index not in removed_solution_indexs)
             ]
+            timer.finish()
 
 
 def main():
