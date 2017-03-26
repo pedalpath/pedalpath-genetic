@@ -1,4 +1,5 @@
 from tools.timer import Timer
+from tools.plotting_tools import plot 
 from tools.display_tools import display 
 from tools.process_tools import ProcessTools 
 from solvers.heading_solver import HeadingSolver
@@ -41,7 +42,7 @@ class Genetic:
 
         # Find solution
         routes = []
-        num_epoc = 100
+        num_epoc = 10
         num_routes = 100
 
         # Find 20 random routes
@@ -56,14 +57,18 @@ class Genetic:
 
             # Create solutions
             solutions = []
+            timer = Timer('Calculate fitness')
             for route in routes:
                 solution = Solution(route)
                 solution.fitness = self._route_fitness(route)
                 solutions.append(solution)
+            timer.finish()
 
             # Sort solutions by fitness
+            timer = Timer('Sorting solutions')
             solutions.sort(key=lambda solution:solution.fitness)
             yield solutions
+            timer.finish()
 
             # Select members of the population randomly to mutate
             mutations = []
@@ -82,14 +87,13 @@ class Genetic:
             # Select members of the population randomly to crossover
             offspring = []
             timer = Timer('Creating offspring')
-            for i in range(10):
-                route_a = select(solutions).route
-                route_b = select(solutions).route
-                for route in crossover(route_a,route_b):
+            selected_solutions_a = self._select_solutions(solutions,4)
+            selected_solutions_b = self._select_solutions(solutions,4)
+            for solution_a,solution_b in zip(selected_solutions_a,selected_solutions_b):
+                for route in crossover(solution_a.route,solution_b.route):
                     solution = Solution(route)
                     solution.fitness = self._route_fitness(route)
                     offspring.append(solution)
-            print(len(offspring))
             timer.finish()
 
             # Select members of population to randomly kill
@@ -98,16 +102,21 @@ class Genetic:
 
             # Routes
             timer = Timer('Updating routes')
-            routes = [
-                solution.route
-                for (index,solution) in enumerate(
-                    solutions +
-                    self._select_solutions(mutations,10) +
-                    self._select_solutions(offspring,10)
-                )
-                if (index not in removed_solution_indexs)
-            ]
+            routes = []
+
+            for index,solution in enumerate(solutions):
+                if (index not in removed_solution_indexs):
+                    routes.append(solution.route)
+            
+            for solution in self._select_solutions(mutations,10):
+                routes.append(solution.route)
+
+            for solution in self._select_solutions(offspring,10):
+                routes.append(solution.route)
+            
             timer.finish()
+
+            print('routes',len(routes))
 
 
 def main():
@@ -122,18 +131,18 @@ def main():
     dalkeith_road = process.nodes['32618117']
     ivanhoe_road = process.nodes['31401881']
 
-    # Modified fitness functions
-    fitness_functions = [{
-        'weight': 0.8,
-        'function': distance_fitness
-    },{
-        'weight': 0.2,
-        'function': bearing_fitness
-    }]
+    # # Modified fitness functions
+    # fitness_functions = [{
+    #     'weight': 0.8,
+    #     'function': distance_fitness
+    # },{
+    #     'weight': 0.2,
+    #     'function': bearing_fitness
+    # }]
 
     # Solve genetic algorithm
     fitness = []
-    genetic = Genetic(fitness_functions=fitness_functions)
+    genetic = Genetic()
     for solutions in genetic.solve(dalkeith_road,ivanhoe_road):
         fitness.append(solutions[0].fitness)
         display({ 'paths': solutions[:2] })

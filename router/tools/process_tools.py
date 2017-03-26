@@ -17,6 +17,8 @@ class ProcessTools:
             for way in load(filename)
         ] 
 
+
+
     def process_relations(self):
 
         # Find adjacent nodes to one and other
@@ -26,7 +28,8 @@ class ProcessTools:
                 if (way_id > len(self.ways)):
                     continue
                 way = self.ways[way_id]
-                for _ref in way.adjacent_nodes(ref):
+                adjacent_nodes = way.adjacent_nodes(ref)
+                for _ref in adjacent_nodes:
                     if (ref == _ref): continue
                     if (_ref in self.nodes):           
                         _node = self.nodes[_ref]

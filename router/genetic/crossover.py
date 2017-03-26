@@ -25,6 +25,7 @@ def crossover(route_a,route_b):
 
     # for all intersections
     for node in intersection(route_a,route_b):
+        if (len(node.neighbours) < 3): continue
         self_index = route_a.index(node)
         other_index = route_b.index(node)
         add(route_a[:self_index] + route_b[other_index:])
